@@ -73,3 +73,20 @@ input { padding:10px; width:100%; max-width:340px; border-radius:8px; border:2px
 .tema-opcion.oscuro { background:#1c1917; color:#f5f5f4; }
 .tema-opcion.activo { border-color:var(--acento); }
 .tema-opcion .etiqueta { font-size:1.2rem; }
+
+/* Estados y validación */
+button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+.contador { display:inline-flex; align-items:center; gap:4px; }
+.contador button { width:34px; height:34px; padding:0; font-size:1.1rem; }
+.contador span { min-width:24px; text-align:center; font-weight:800; }
+.aviso { display:block; color:var(--acento); margin-top:4px; }
+.alerta { background:var(--suave); border-left:4px solid var(--acento); padding:10px 12px; border-radius:8px; }
+.nota { font-size:.9rem; opacity:.85; margin:0; }
+.lista-pedido .nombre small { display:block; font-weight:400; opacity:.75; }
+.campo .error { color:#dc2626; font-weight:500; }
+.pago .campo.invalido input, .pago .campo.invalido select { border-color:#dc2626; }
+.fila { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:520px) {
+  .lista-pedido li { flex-wrap:wrap; }
+  .lista-pedido .nombre { flex-basis:calc(100% - 70px); }
+}

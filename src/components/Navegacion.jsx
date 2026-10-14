@@ -1,4 +1,4 @@
-import { useFavoritos } from '../context/FavoritosContext'
+import { usePedido } from '../context/PedidoContext'
 
 const VISTAS = [
   { id: 'carta', etiqueta: '📖 Carta' },
@@ -8,14 +8,14 @@ const VISTAS = [
 ]
 
 export default function Navegacion({ vista, onCambiar }) {
-  const { favoritos } = useFavoritos()
+  const { unidades } = usePedido()
   return (
     <nav className="nav">
       <span className="marca">🇵🇪 Sabores del Perú</span>
       <div className="tabs">
         {VISTAS.map(v => (
           <button key={v.id} className={v.id === vista ? 'tab activo' : 'tab'} onClick={() => onCambiar(v.id)}>
-            {v.etiqueta}{v.id === 'pedido' && ` (${favoritos.length})`}
+            {v.etiqueta}{v.id === 'pedido' && ` (${unidades})`}
           </button>
         ))}
       </div>

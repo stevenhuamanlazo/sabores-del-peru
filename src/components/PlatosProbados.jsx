@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 
-export default function PlatosProbados() {
+export default function PlatosProbados({ total }) {
   // useState: al cambiar, dispara un re-render
   const [probados, setProbados] = useState(0)
 
@@ -24,9 +24,10 @@ export default function PlatosProbados() {
   return (
     <section className="panel">
       <h2>🍽️ Platos probados: {probados}</h2>
-      <button onClick={() => setProbados(p => p + 1)}>Probar un plato</button>
+      <button onClick={() => setProbados(p => Math.min(p + 1, total))} disabled={probados >= total}>Probar un plato</button>
       <button onClick={sumarSinRender}>Sumar a useRef (no re-renderiza)</button>
       <button onClick={() => setProbados(0)}>Reset</button>
+      {probados >= total && <p className="nota">🎉 ¡Probaste toda la carta!</p>}
       <p>Renders de este componente: {totalRenders}</p>
     </section>
   )

@@ -11,11 +11,31 @@ SPA en React + Vite para explorar platos peruanos, armar un pedido y pagarlo. De
 | Vista | Qué hace |
 |---|---|
 | 📖 **Carta** | Lista de platos con búsqueda, filtro por región (Costa/Sierra/Selva) y contador de platos probados |
-| 🛒 **Mi pedido** | Platos agregados, total, quitar platos o vaciar el pedido |
-| 💳 **Pago** | Formulario de entrega (nombre, celular, dirección, método de pago) y confirmación del pedido |
+| 🛒 **Mi pedido** | Cantidades con + / −, subtotal por plato, total, eliminar o vaciar (con confirmación) |
+| 💳 **Pago** | Formulario de entrega validado, campos según el método de pago y confirmación del pedido |
 | 🎨 **Tema** | Selección de tema claro u oscuro, compartido por toda la app |
 
 La navegación entre vistas se hace con `useState` en `App.jsx` (sin recargar la página). El pedido y el tema se guardan en `localStorage`, así que no se pierden al recargar.
+
+## Reglas de negocio y validaciones
+
+**Pedido** (`src/utils/reglasPedido.js`, aplicadas dentro del reducer para que ninguna vista pueda saltárselas):
+- Máximo **5 unidades por plato** y **15 platos por pedido**. Los botones se desactivan y se muestra un aviso al llegar al límite.
+- **Pedido mínimo de S/ 20** para poder pagar.
+- Restar nunca deja cantidades negativas. Vaciar el pedido pide confirmación.
+- El pedido guardado en `localStorage` se revisa al cargar: los datos corruptos o manipulados se descartan.
+
+**Formulario de pago** (`src/utils/validaciones.js`):
+
+| Campo | Regla | Ejemplo de error humano que detecta |
+|---|---|---|
+| Nombre | Solo letras, nombre **y** apellido, máx. 50 | `Rosa`, `Rosa123`, solo espacios |
+| Celular | 9 dígitos y empieza en 9 (se formatea `987 654 321`) | `98765432`, `887654321` |
+| Dirección | Mínimo 10 caracteres, con calle **y** número | `Jr 1`, `Avenida Huancavelica` |
+| Efectivo | Debe cubrir el total y el vuelto no puede pasar de S/ 200 | pagar S/ 40 un pedido de S/ 50 |
+| Tarjeta | 16 dígitos + algoritmo de **Luhn**, vencimiento MM/AA no vencido, CVV de 3 dígitos | un dígito mal escrito, tarjeta vencida, mes 13 |
+
+Los errores aparecen al salir de cada campo o al intentar enviar. Los campos numéricos solo aceptan dígitos mientras se escribe, y un `useRef` evita que un doble clic confirme el pedido dos veces. La búsqueda ignora tildes y mayúsculas (`aji` encuentra *Ají de gallina*) y muestra un mensaje cuando no hay resultados.
 
 ## Los 5 pasos de la guía
 
@@ -31,11 +51,11 @@ La navegación entre vistas se hace con `useState` en `App.jsx` (sin recargar la
 ### Paso 3 – `useContext` sin prop drilling
 Los contextos están separados por dominio, como pide la guía:
 - `context/ThemeContext.jsx`: tema claro/oscuro, usado en `Cabecera` y en la vista `Tema`.
-- `context/FavoritosContext.jsx`: el pedido, manejado con **`useReducer`** (acciones `TOGGLE` y `LIMPIAR`), usado en `Navegacion`, `ListaPlatos`, `Pedido` y `Pago`.
+- `context/PedidoContext.jsx`: el pedido, manejado con **`useReducer`** (acciones `AGREGAR`, `RESTAR`, `ELIMINAR` y `LIMPIAR`), usado en `Navegacion`, `ListaPlatos`, `Pedido` y `Pago`.
 - En ambos Providers el `value` está memorizado con `useMemo`. Así un render del Provider no re-renderiza a todos los consumidores si el dato no cambió.
 
 ### Paso 4 – Optimización: `useMemo`, `useCallback`, `useRef`, `memo`
-- `ListaPlatos.jsx`: el filtro por nombre y región está en `useMemo`. `toggleFav` está estabilizado con `useCallback`, y `useRef` enfoca el buscador sin provocar un render.
+- `ListaPlatos.jsx`: el filtro por nombre y región está en `useMemo`. `agregar` y `restar` están estabilizados con `useCallback`, y `useRef` enfoca el buscador sin provocar un render.
 - `TarjetaPlato.jsx` está envuelto en `React.memo`. Como recibe un callback estable, al escribir en el buscador solo se renderizan las tarjetas que cambian.
 - `App.jsx`: `platos` se memoriza para que su referencia no cambie en cada render.
 - **Métricas (Profiler):** ver las capturas de antes y después de aplicar `memo`/`useCallback` en la sección de evidencias.
@@ -44,7 +64,7 @@ Los contextos están separados por dominio, como pide la guía:
 | Hook | Uso | Dónde se reutiliza |
 |---|---|---|
 | `useFetch(url)` | Petición + `cargando` + `error` + cancelación | `App.jsx` (carga de `platos.json`) |
-| `useForm(iniciales)` | Estado de un formulario controlado | `Pago.jsx` |
+| `useForm(iniciales, validar, formatos)` | Formulario controlado con validación, campos tocados y formato de entrada | `Pago.jsx` |
 | `useLocalStorage(clave, inicial)` | `useState` que persiste en `localStorage` | `ThemeContext.jsx` |
 
 Todos se llaman en el nivel superior del componente, nunca dentro de loops, condiciones ni funciones anidadas. Las reglas de Hooks se validan con `eslint-plugin-react-hooks` (`npm run lint`).
@@ -68,11 +88,16 @@ src/
 │   └── Tema.jsx
 ├── context/
 │   ├── ThemeContext.jsx     # Paso 3
-│   └── FavoritosContext.jsx # Paso 3 + useReducer
-└── hooks/
-    ├── useFetch.js          # Paso 2 y 5
-    ├── useForm.js           # Paso 5
-    └── useLocalStorage.js   # Paso 5
+│   └── PedidoContext.jsx    # Paso 3 + useReducer
+├── hooks/
+│   ├── useFetch.js          # Paso 2 y 5
+│   ├── useForm.js           # Paso 5
+│   └── useLocalStorage.js   # Paso 5
+└── utils/
+    ├── reglasPedido.js      # Límites y reducer del pedido (funciones puras)
+    └── validaciones.js      # Reglas del formulario de pago
+tests/
+└── reglas.test.js           # 12 pruebas de límites y errores humanos
 ```
 
 ## Ejecutar en local
@@ -81,11 +106,12 @@ src/
 npm install
 npm run dev      # http://localhost:5173
 npm run lint     # reglas de Hooks
+npm test         # pruebas de reglas y validaciones (node:test)
 npm run build    # build de producción en dist/
 ```
 
 ## Despliegue
-Cada `push` a `main` ejecuta `.github/workflows/static.yml`, que instala dependencias, pasa el lint, compila con Vite y publica `dist/` en GitHub Pages.
+Cada `push` a `main` ejecuta `.github/workflows/static.yml`, que instala dependencias, pasa el lint y las pruebas, compila con Vite y publica `dist/` en GitHub Pages.
 
 ## Evidencias
 <!-- Agrega aquí tus capturas: guárdalas en una carpeta docs/ y enlázalas así: ![Paso 1](docs/paso1.png) -->

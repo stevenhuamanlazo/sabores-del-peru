@@ -25,12 +25,12 @@ export default function App() {
         {error && <p>❌ Error: {error}</p>}
         {data && vista === 'carta' && (
           <>
-            <PlatosProbados />
+            <PlatosProbados total={platos.length} />
             <ListaPlatos platos={platos} />
           </>
         )}
         {data && vista === 'pedido' && <Pedido platos={platos} onPagar={() => setVista('pago')} onVolver={() => setVista('carta')} />}
-        {data && vista === 'pago' && <Pago platos={platos} onVolver={() => setVista('carta')} />}
+        {data && vista === 'pago' && <Pago platos={platos} onVolver={() => setVista('carta')} onVerPedido={() => setVista('pedido')} />}
         {vista === 'tema' && <Tema />}
       </main>
     </>

@@ -1,20 +1,22 @@
 import { useMemo } from 'react'
-import { useFavoritos } from '../context/FavoritosContext'
+import { usePedido } from '../context/PedidoContext'
+import { MAX_POR_PLATO, MAX_UNIDADES, PEDIDO_MINIMO } from '../utils/reglasPedido'
 
 export default function Pedido({ platos, onPagar, onVolver }) {
-  const { favoritos, dispatch } = useFavoritos()
+  const { items, unidades, dispatch } = usePedido()
 
-  // useMemo: platos del pedido y su total
-  const seleccionados = useMemo(
-    () => platos.filter(p => favoritos.includes(p.id)),
-    [platos, favoritos]
+  // useMemo: líneas del pedido (solo platos que existen en la carta) y su total
+  const lineas = useMemo(
+    () => platos.filter(p => items[p.id]).map(p => ({ ...p, cantidad: items[p.id] })),
+    [platos, items]
   )
   const total = useMemo(
-    () => seleccionados.reduce((suma, p) => suma + p.precio, 0),
-    [seleccionados]
+    () => lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0),
+    [lineas]
   )
+  const falta = PEDIDO_MINIMO - total
 
-  if (seleccionados.length === 0) {
+  if (lineas.length === 0) {
     return (
       <section className="panel vacio">
         <h2>🛒 Tu pedido está vacío</h2>
@@ -24,24 +26,38 @@ export default function Pedido({ platos, onPagar, onVolver }) {
     )
   }
 
+  const vaciar = () => {
+    if (window.confirm('¿Seguro que quieres vaciar todo el pedido?')) dispatch({ type: 'LIMPIAR' })
+  }
+
   return (
     <section className="panel">
-      <h2>🛒 Mi pedido ({seleccionados.length} {seleccionados.length === 1 ? 'plato' : 'platos'})</h2>
+      <h2>🛒 Mi pedido ({unidades} de {MAX_UNIDADES} platos)</h2>
       <ul className="lista-pedido">
-        {seleccionados.map(p => (
-          <li key={p.id}>
-            <img src={`${import.meta.env.BASE_URL}img/${p.id}.jpg`} alt={p.nombre} />
-            <span className="nombre">{p.emoji} {p.nombre}</span>
-            <span className="precio">S/ {p.precio}</span>
-            <button className="quitar" onClick={() => dispatch({ type: 'TOGGLE', id: p.id })}>✕</button>
+        {lineas.map(l => (
+          <li key={l.id}>
+            <img src={`${import.meta.env.BASE_URL}img/${l.id}.jpg`} alt={l.nombre} />
+            <span className="nombre">{l.emoji} {l.nombre}<small>S/ {l.precio} c/u</small></span>
+            <div className="contador">
+              <button onClick={() => dispatch({ type: 'RESTAR', id: l.id })} aria-label={`Quitar un ${l.nombre}`}>−</button>
+              <span>{l.cantidad}</span>
+              <button
+                onClick={() => dispatch({ type: 'AGREGAR', id: l.id })}
+                disabled={l.cantidad >= MAX_POR_PLATO || unidades >= MAX_UNIDADES}
+                aria-label={`Agregar un ${l.nombre}`}
+              >+</button>
+            </div>
+            <span className="precio">S/ {l.precio * l.cantidad}</span>
+            <button className="quitar" onClick={() => dispatch({ type: 'ELIMINAR', id: l.id })} aria-label={`Eliminar ${l.nombre}`}>✕</button>
           </li>
         ))}
       </ul>
+      {falta > 0 && <p className="alerta">⚠️ El pedido mínimo es S/ {PEDIDO_MINIMO}. Te faltan S/ {falta}.</p>}
       <div className="menu">
         <div className="total">Total: S/ {total}</div>
         <div>
-          <button className="chip" onClick={() => dispatch({ type: 'LIMPIAR' })}>🗑️ Vaciar</button>
-          <button onClick={onPagar}>💳 Ir a pagar</button>
+          <button className="chip" onClick={vaciar}>🗑️ Vaciar</button>
+          <button onClick={onPagar} disabled={falta > 0}>💳 Ir a pagar</button>
         </div>
       </div>
     </section>
