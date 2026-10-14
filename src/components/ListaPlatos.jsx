@@ -1,44 +1,45 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
+import { useFavoritos } from '../context/FavoritosContext'
+import { useFetch } from '../hooks/useFetch'
+import TarjetaPlato from './TarjetaPlato'
 
 export default function ListaPlatos() {
-  const [platos, setPlatos] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState(null)
+  // Hook personalizado: encapsula fetch + loading + error + AbortController
+  const { data, cargando, error } = useFetch('/platos.json')
+  const platos = useMemo(() => data ?? [], [data])
 
-  useEffect(() => {
-    const controller = new AbortController()
+  const [busqueda, setBusqueda] = useState('')
+  const [region, setRegion] = useState('Todas')
+  const inputRef = useRef(null)
+  const { favoritos, dispatch } = useFavoritos()
 
-    const cargarPlatos = async () => {
-      try {
-        const res = await fetch('/platos.json', { signal: controller.signal })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = await res.json()
-        setPlatos(data)
-        setCargando(false)
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          setError(err.message)
-          setCargando(false)
-        }
-      }
-    }
+  // useMemo: solo recalcula si cambian platos, búsqueda o región
+  const filtrados = useMemo(
+    () => platos.filter(p =>
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
+      (region === 'Todas' || p.region === region)),
+    [platos, busqueda, region]
+  )
 
-    cargarPlatos()
-
-    return () => controller.abort()
-  }, [])
+  // useCallback: la misma función entre renders, así memo funciona
+  const toggleFav = useCallback(id => dispatch({ type: 'TOGGLE', id }), [dispatch])
 
   if (cargando) return <p>⏳ Cargando platos...</p>
   if (error) return <p>❌ Error: {error}</p>
 
   return (
     <section>
-      <h2>📖 Carta ({platos.length} platos)</h2>
-      <ul>
-        {platos.map(p => (
-          <li key={p.id}>
-            {p.emoji} <strong>{p.nombre}</strong> ({p.region}) - S/ {p.precio}
-          </li>
+      <h2>📖 Carta ({filtrados.length} platos) · ❤️ {favoritos.length}</h2>
+      <input ref={inputRef} value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar plato..." />
+      <button onClick={() => inputRef.current.focus()}>🔍 Enfocar</button>
+      <div>
+        {['Todas', 'Costa', 'Sierra', 'Selva'].map(r => (
+          <button key={r} onClick={() => setRegion(r)}>{r}</button>
+        ))}
+      </div>
+      <ul className="grid">
+        {filtrados.map(p => (
+          <TarjetaPlato key={p.id} plato={p} esFavorito={favoritos.includes(p.id)} onToggle={toggleFav} />
         ))}
       </ul>
     </section>
