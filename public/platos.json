@@ -1,0 +1,14 @@
+[
+  { "id": 1, "nombre": "Ceviche", "region": "Costa", "emoji": "🐟", "precio": 28, "descripcion": "Pescado fresco marinado en limón con ají y camote." },
+  { "id": 2, "nombre": "Lomo saltado", "region": "Costa", "emoji": "🥩", "precio": 26, "descripcion": "Salteado de res con cebolla, tomate y papas fritas." },
+  { "id": 3, "nombre": "Ají de gallina", "region": "Costa", "emoji": "🍛", "precio": 22, "descripcion": "Crema de ají amarillo con gallina deshilachada." },
+  { "id": 4, "nombre": "Causa limeña", "region": "Costa", "emoji": "🥔", "precio": 18, "descripcion": "Masa de papa amarilla rellena de pollo o atún." },
+  { "id": 5, "nombre": "Papa a la huancaína", "region": "Sierra", "emoji": "🥔", "precio": 15, "descripcion": "Papas con crema de queso y ají amarillo, típica de Huancayo." },
+  { "id": 6, "nombre": "Trucha frita", "region": "Sierra", "emoji": "🐟", "precio": 24, "descripcion": "Trucha de los ríos andinos con arroz y ensalada." },
+  { "id": 7, "nombre": "Pachamanca", "region": "Sierra", "emoji": "🍖", "precio": 35, "descripcion": "Carnes y tubérculos cocidos bajo tierra con piedras calientes." },
+  { "id": 8, "nombre": "Cuy chactado", "region": "Sierra", "emoji": "🍗", "precio": 45, "descripcion": "Cuy frito y crocante con papas y ensalada." },
+  { "id": 9, "nombre": "Rocoto relleno", "region": "Sierra", "emoji": "🌶️", "precio": 20, "descripcion": "Rocoto relleno de carne, gratinado con queso." },
+  { "id": 10, "nombre": "Juane", "region": "Selva", "emoji": "🍙", "precio": 17, "descripcion": "Arroz con pollo envuelto en hoja de bijao." },
+  { "id": 11, "nombre": "Tacacho con cecina", "region": "Selva", "emoji": "🥓", "precio": 23, "descripcion": "Bolas de plátano verde con cecina ahumada." },
+  { "id": 12, "nombre": "Patarashca", "region": "Selva", "emoji": "🐠", "precio": 27, "descripcion": "Pescado de río asado en hoja de bijao." }
+]
