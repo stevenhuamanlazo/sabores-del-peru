@@ -3,7 +3,7 @@ import { memo } from 'react'
 function TarjetaPlato({ plato, esFavorito, onToggle }) {
   return (
     <li className="card">
-      <img className="foto" src={`/img/${plato.id}.jpg`} alt={plato.nombre} loading="lazy" />
+      <img className="foto" src={`${import.meta.env.BASE_URL}img/${plato.id}.jpg`} alt={plato.nombre} loading="lazy" />
       <h3>{plato.emoji} {plato.nombre}</h3>
       <span className={`badge ${plato.region}`}>{plato.region}</span>
       <p><small>{plato.descripcion}</small></p>
