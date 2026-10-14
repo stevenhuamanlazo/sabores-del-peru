@@ -90,3 +90,8 @@ button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
   .lista-pedido li { flex-wrap:wrap; }
   .lista-pedido .nombre { flex-basis:calc(100% - 70px); }
 }
+
+/* Selector de personas */
+.personas { display:flex; align-items:center; flex-wrap:wrap; gap:6px 12px; background:var(--bg); border-radius:12px; padding:10px 14px; margin:12px 0; }
+.personas > span { font-weight:700; }
+.personas small { flex-basis:100%; opacity:.8; }

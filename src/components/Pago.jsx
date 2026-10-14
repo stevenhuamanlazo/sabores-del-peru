@@ -18,7 +18,7 @@ function Campo({ etiqueta, error, children }) {
 }
 
 export default function Pago({ platos, onVolver, onVerPedido }) {
-  const { items, dispatch } = usePedido()
+  const { items, personas, dispatch } = usePedido()
   const [confirmado, setConfirmado] = useState(null)
   const enviando = useRef(false)
 
@@ -46,6 +46,7 @@ export default function Pago({ platos, onVolver, onVerPedido }) {
       metodo: valores.metodo,
       vuelto: valores.metodo === 'Efectivo' ? Number(valores.pagaCon) - total : 0,
       total,
+      personas,
       codigo: Date.now().toString().slice(-6),
     })
     dispatch({ type: 'LIMPIAR' })
@@ -56,7 +57,7 @@ export default function Pago({ platos, onVolver, onVerPedido }) {
     return (
       <section className="panel vacio">
         <h2>✅ ¡Pedido confirmado!</h2>
-        <p>Gracias, <b>{confirmado.nombre}</b>. Tu pedido <b>#{confirmado.codigo}</b> por <b>S/ {confirmado.total}</b> ({confirmado.metodo}) llegará a {confirmado.direccion}.</p>
+        <p>Gracias, <b>{confirmado.nombre}</b>. Tu pedido <b>#{confirmado.codigo}</b> para {confirmado.personas} {confirmado.personas === 1 ? 'persona' : 'personas'} por <b>S/ {confirmado.total}</b> ({confirmado.metodo}) llegará a {confirmado.direccion}.</p>
         {confirmado.vuelto > 0 && <p>El repartidor llevará <b>S/ {confirmado.vuelto.toFixed(2)}</b> de vuelto.</p>}
         <button onClick={() => { enviando.current = false; setConfirmado(null); onVolver() }}>📖 Volver a la carta</button>
       </section>
@@ -137,7 +138,7 @@ export default function Pago({ platos, onVolver, onVerPedido }) {
         <button type="submit">✅ Confirmar pedido (S/ {total})</button>
       </form>
       <aside>
-        <h3>🧾 Resumen</h3>
+        <h3>🧾 Resumen · 👥 {personas}</h3>
         <ul>{lineas.map(l => <li key={l.id}><span>{l.cantidad} × {l.emoji} {l.nombre}</span> <b>S/ {l.precio * l.cantidad}</b></li>)}</ul>
         <div className="total">Total: S/ {total}</div>
         <button className="chip" onClick={onVerPedido}>✏️ Editar pedido</button>

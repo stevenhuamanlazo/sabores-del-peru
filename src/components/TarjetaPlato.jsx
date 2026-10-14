@@ -1,8 +1,7 @@
 import { memo } from 'react'
-import { MAX_POR_PLATO } from '../utils/reglasPedido'
 
-function TarjetaPlato({ plato, cantidad, bloqueado, onAgregar, onRestar }) {
-  const limitePlato = cantidad >= MAX_POR_PLATO
+function TarjetaPlato({ plato, cantidad, maxPorPlato, bloqueado, onAgregar, onRestar }) {
+  const limitePlato = cantidad >= maxPorPlato
   return (
     <li className="card">
       <img className="foto" src={`${import.meta.env.BASE_URL}img/${plato.id}.jpg`} alt={plato.nombre} loading="lazy" />
@@ -19,7 +18,7 @@ function TarjetaPlato({ plato, cantidad, bloqueado, onAgregar, onRestar }) {
             <button onClick={() => onAgregar(plato.id)} disabled={bloqueado || limitePlato} aria-label={`Agregar un ${plato.nombre}`}>+</button>
           </div>
         )}
-      {limitePlato && <small className="aviso">Máximo {MAX_POR_PLATO} por plato</small>}
+      {limitePlato && <small className="aviso">Máximo {maxPorPlato} (uno por persona)</small>}
     </li>
   )
 }

@@ -2,36 +2,58 @@
 // Ejecutar: npm test
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { reducerPedido, contarUnidades, MAX_POR_PLATO, MAX_UNIDADES } from '../src/utils/reglasPedido.js'
+import { reducerPedido, contarUnidades, sanearPedido, ESTADO_INICIAL, MAX_PERSONAS } from '../src/utils/reglasPedido.js'
 import { validarPago, formatos, VUELTO_MAXIMO } from '../src/utils/validaciones.js'
 
-const agregarVeces = (items, id, veces) => {
-  for (let i = 0; i < veces; i++) items = reducerPedido(items, { type: 'AGREGAR', id })
-  return items
-}
+const aplicar = (estado, ...acciones) => acciones.reduce(reducerPedido, estado)
+const agregarVeces = (estado, id, veces) => aplicar(estado, ...Array(veces).fill({ type: 'AGREGAR', id }))
+const conPersonas = n => aplicar(ESTADO_INICIAL, ...Array.from({ length: n - 1 }, (_, i) => ({ type: 'PERSONAS', personas: i + 2 })))
 
-test('no se puede pasar del máximo por plato', () => {
-  const items = agregarVeces({}, 1, MAX_POR_PLATO + 3)
-  assert.equal(items[1], MAX_POR_PLATO)
+test('1 persona no puede pedir 11 platos: máximo 2', () => {
+  let estado = ESTADO_INICIAL
+  for (let id = 1; id <= 11; id++) estado = agregarVeces(estado, id, 1)
+  assert.equal(contarUnidades(estado.items), 2)
 })
 
-test('no se puede pasar del máximo de platos del pedido', () => {
-  let items = {}
-  for (let id = 1; id <= 12; id++) items = agregarVeces(items, id, MAX_POR_PLATO)
-  assert.equal(contarUnidades(items), MAX_UNIDADES)
+test('1 persona no puede pedir el mismo plato dos veces', () => {
+  const estado = agregarVeces(ESTADO_INICIAL, 1, 3)
+  assert.equal(estado.items[1], 1)
+})
+
+test('4 personas: hasta 8 platos y hasta 4 del mismo', () => {
+  let estado = agregarVeces(conPersonas(4), 1, 6)
+  assert.equal(estado.items[1], 4)
+  for (let id = 2; id <= 12; id++) estado = agregarVeces(estado, id, 4)
+  assert.equal(contarUnidades(estado.items), 8)
+})
+
+test('no se puede bajar personas si el pedido ya no entra', () => {
+  const estado = agregarVeces(conPersonas(3), 1, 3)
+  assert.equal(reducerPedido(estado, { type: 'PERSONAS', personas: 2 }).personas, 3)
+  const ajustado = aplicar(estado, { type: 'RESTAR', id: 1 }, { type: 'PERSONAS', personas: 2 })
+  assert.equal(ajustado.personas, 2)
+})
+
+test('personas fuera de rango o no enteras se ignoran', () => {
+  assert.equal(reducerPedido(ESTADO_INICIAL, { type: 'PERSONAS', personas: 0 }).personas, 1)
+  assert.equal(reducerPedido(ESTADO_INICIAL, { type: 'PERSONAS', personas: MAX_PERSONAS + 1 }).personas, 1)
+  assert.equal(reducerPedido(ESTADO_INICIAL, { type: 'PERSONAS', personas: 2.5 }).personas, 1)
 })
 
 test('restar hasta cero quita el plato y no deja cantidades negativas', () => {
-  let items = agregarVeces({}, 2, 2)
-  items = reducerPedido(items, { type: 'RESTAR', id: 2 })
-  items = reducerPedido(items, { type: 'RESTAR', id: 2 })
-  items = reducerPedido(items, { type: 'RESTAR', id: 2 })
-  assert.deepEqual(items, {})
+  const estado = aplicar(agregarVeces(ESTADO_INICIAL, 2, 1), { type: 'RESTAR', id: 2 }, { type: 'RESTAR', id: 2 })
+  assert.deepEqual(estado.items, {})
 })
 
 test('una acción desconocida no cambia el estado', () => {
-  const items = { 1: 2 }
-  assert.equal(reducerPedido(items, { type: 'HACKEAR' }), items)
+  assert.equal(reducerPedido(ESTADO_INICIAL, { type: 'HACKEAR' }), ESTADO_INICIAL)
+})
+
+test('un pedido guardado manipulado se recorta a los límites', () => {
+  const saneado = sanearPedido({ personas: 1, items: { 1: 50, 2: -3, 3: 'x', 4: 1, 5: 1 } })
+  assert.deepEqual(saneado, { personas: 1, items: { 1: 1, 4: 1 } })
+  assert.deepEqual(sanearPedido(null), ESTADO_INICIAL)
+  assert.deepEqual(sanearPedido([1, 2]), ESTADO_INICIAL)
 })
 
 const base = { nombre: 'Rosa Quispe', telefono: '987 654 321', direccion: 'Jr. Puno 123, Huancayo', referencia: '', metodo: 'Yape', pagaCon: '', tarjeta: '', vencimiento: '', cvv: '' }

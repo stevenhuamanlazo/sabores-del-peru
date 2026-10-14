@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
 import { usePedido } from '../context/PedidoContext'
-import { MAX_UNIDADES } from '../utils/reglasPedido'
 import TarjetaPlato from './TarjetaPlato'
+import SelectorPersonas from './SelectorPersonas'
 
 const REGIONES = ['Todas', 'Costa', 'Sierra', 'Selva']
 
@@ -12,8 +12,8 @@ export default function ListaPlatos({ platos }) {
   const [busqueda, setBusqueda] = useState('')
   const [region, setRegion] = useState('Todas')
   const inputRef = useRef(null)
-  const { items, unidades, dispatch } = usePedido()
-  const lleno = unidades >= MAX_UNIDADES
+  const { items, unidades, personas, maxUnidades, maxPorPlato, dispatch } = usePedido()
+  const lleno = unidades >= maxUnidades
 
   // useMemo: solo recalcula si cambian platos, búsqueda o región
   const filtrados = useMemo(() => {
@@ -43,7 +43,8 @@ export default function ListaPlatos({ platos }) {
           <button key={r} className={r === region ? 'chip activo' : 'chip'} onClick={() => setRegion(r)}>{r}</button>
         ))}
       </div>
-      {lleno && <p className="alerta">⚠️ Llegaste al máximo de {MAX_UNIDADES} platos por pedido. Quita alguno para agregar otro.</p>}
+      <SelectorPersonas />
+      {lleno && <p className="alerta">⚠️ Ya tienes {maxUnidades} platos para {personas} {personas === 1 ? 'persona' : 'personas'}. Si son más, aumenta el número de personas.</p>}
       {filtrados.length === 0
         ? (
           <div className="vacio">
@@ -54,7 +55,7 @@ export default function ListaPlatos({ platos }) {
         : (
           <ul className="grid">
             {filtrados.map(p => (
-              <TarjetaPlato key={p.id} plato={p} cantidad={items[p.id] ?? 0} bloqueado={lleno} onAgregar={agregar} onRestar={restar} />
+              <TarjetaPlato key={p.id} plato={p} cantidad={items[p.id] ?? 0} maxPorPlato={maxPorPlato} bloqueado={lleno} onAgregar={agregar} onRestar={restar} />
             ))}
           </ul>
         )}

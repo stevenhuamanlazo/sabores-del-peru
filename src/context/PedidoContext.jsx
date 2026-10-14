@@ -1,42 +1,37 @@
 import { createContext, useContext, useReducer, useEffect, useMemo } from 'react'
-import { MAX_POR_PLATO, MAX_UNIDADES, contarUnidades, reducerPedido } from '../utils/reglasPedido'
+import { ESTADO_INICIAL, contarUnidades, limitesPara, reducerPedido, sanearPedido } from '../utils/reglasPedido'
 
 const PedidoContext = createContext(null)
-const CLAVE = 'pedido-v2'
+const CLAVE = 'pedido-v3'
 
-// Inicializador perezoso: recupera el pedido guardado y descarta datos corruptos o manipulados
+// Inicializador perezoso: recupera el pedido guardado y lo sanea
 function cargarPedido() {
   try {
-    const guardado = JSON.parse(localStorage.getItem(CLAVE))
-    if (!guardado || typeof guardado !== 'object' || Array.isArray(guardado)) return {}
-    const limpio = {}
-    let total = 0
-    for (const [id, cantidad] of Object.entries(guardado)) {
-      const n = Math.min(Number(cantidad), MAX_POR_PLATO, MAX_UNIDADES - total)
-      if (Number.isInteger(n) && n > 0) {
-        limpio[id] = n
-        total += n
-      }
-    }
-    return limpio
+    return sanearPedido(JSON.parse(localStorage.getItem(CLAVE)))
   } catch {
-    return {}
+    return ESTADO_INICIAL
   }
 }
 
 export function PedidoProvider({ children }) {
-  const [items, dispatch] = useReducer(reducerPedido, undefined, cargarPedido)
+  const [estado, dispatch] = useReducer(reducerPedido, undefined, cargarPedido)
 
   useEffect(() => {
     try {
-      localStorage.setItem(CLAVE, JSON.stringify(items))
+      localStorage.setItem(CLAVE, JSON.stringify(estado))
     } catch {
       // Sin almacenamiento disponible: el pedido vive solo en memoria
     }
-  }, [items])
+  }, [estado])
 
   // dispatch es estable; value solo cambia cuando cambia el pedido
-  const value = useMemo(() => ({ items, unidades: contarUnidades(items), dispatch }), [items])
+  const value = useMemo(() => ({
+    items: estado.items,
+    personas: estado.personas,
+    unidades: contarUnidades(estado.items),
+    ...limitesPara(estado.personas),
+    dispatch,
+  }), [estado])
 
   return <PedidoContext.Provider value={value}>{children}</PedidoContext.Provider>
 }

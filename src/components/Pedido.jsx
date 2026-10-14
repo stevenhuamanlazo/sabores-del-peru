@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 import { usePedido } from '../context/PedidoContext'
-import { MAX_POR_PLATO, MAX_UNIDADES, PEDIDO_MINIMO } from '../utils/reglasPedido'
+import { PEDIDO_MINIMO } from '../utils/reglasPedido'
+import SelectorPersonas from './SelectorPersonas'
 
 export default function Pedido({ platos, onPagar, onVolver }) {
-  const { items, unidades, dispatch } = usePedido()
+  const { items, unidades, personas, maxUnidades, maxPorPlato, dispatch } = usePedido()
 
   // useMemo: líneas del pedido (solo platos que existen en la carta) y su total
   const lineas = useMemo(
@@ -32,7 +33,8 @@ export default function Pedido({ platos, onPagar, onVolver }) {
 
   return (
     <section className="panel">
-      <h2>🛒 Mi pedido ({unidades} de {MAX_UNIDADES} platos)</h2>
+      <h2>🛒 Mi pedido ({unidades} {unidades === 1 ? 'plato' : 'platos'} para {personas} {personas === 1 ? 'persona' : 'personas'})</h2>
+      <SelectorPersonas />
       <ul className="lista-pedido">
         {lineas.map(l => (
           <li key={l.id}>
@@ -43,7 +45,7 @@ export default function Pedido({ platos, onPagar, onVolver }) {
               <span>{l.cantidad}</span>
               <button
                 onClick={() => dispatch({ type: 'AGREGAR', id: l.id })}
-                disabled={l.cantidad >= MAX_POR_PLATO || unidades >= MAX_UNIDADES}
+                disabled={l.cantidad >= maxPorPlato || unidades >= maxUnidades}
                 aria-label={`Agregar un ${l.nombre}`}
               >+</button>
             </div>

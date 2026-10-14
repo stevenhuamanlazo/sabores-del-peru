@@ -20,10 +20,15 @@ La navegación entre vistas se hace con `useState` en `App.jsx` (sin recargar la
 ## Reglas de negocio y validaciones
 
 **Pedido** (`src/utils/reglasPedido.js`, aplicadas dentro del reducer para que ninguna vista pueda saltárselas):
-- Máximo **5 unidades por plato** y **15 platos por pedido**. Los botones se desactivan y se muestra un aviso al llegar al límite.
+- El cliente indica **para cuántas personas** es el pedido (1 a 8). Los límites dependen de eso, porque no tiene sentido que una sola persona pida 11 platos:
+  - Máximo **2 platos por persona** (1 persona → 2 platos, 4 personas → 8 platos).
+  - El **mismo plato, una vez por persona** (1 persona no puede pedir 3 ceviches; una familia de 4, sí).
+  - No se puede reducir el número de personas si el pedido ya no entra: la app pide quitar platos primero en vez de borrarlos sin avisar.
+  - Grupos de más de 8 personas deben llamar al restaurante.
+- Al llegar a un límite, los botones se desactivan y aparece un aviso.
 - **Pedido mínimo de S/ 20** para poder pagar.
 - Restar nunca deja cantidades negativas. Vaciar el pedido pide confirmación.
-- El pedido guardado en `localStorage` se revisa al cargar: los datos corruptos o manipulados se descartan.
+- El pedido guardado en `localStorage` se revisa al cargar: los datos corruptos o manipulados se descartan o se recortan a los límites.
 
 **Formulario de pago** (`src/utils/validaciones.js`):
 
@@ -84,6 +89,7 @@ src/
 │   ├── ListaPlatos.jsx      # Paso 4: useMemo, useCallback, useRef
 │   ├── TarjetaPlato.jsx     # React.memo
 │   ├── Pedido.jsx
+│   ├── SelectorPersonas.jsx # ¿Para cuántas personas?
 │   ├── Pago.jsx             # usa useForm
 │   └── Tema.jsx
 ├── context/
@@ -97,7 +103,7 @@ src/
     ├── reglasPedido.js      # Límites y reducer del pedido (funciones puras)
     └── validaciones.js      # Reglas del formulario de pago
 tests/
-└── reglas.test.js           # 12 pruebas de límites y errores humanos
+└── reglas.test.js           # 16 pruebas de límites y errores humanos
 ```
 
 ## Ejecutar en local
