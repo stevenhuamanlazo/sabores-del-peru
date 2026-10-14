@@ -34,3 +34,5 @@ input { padding:10px; width:100%; max-width:340px; border-radius:8px; border:2px
 .menu { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
 .menu ul { margin:6px 0; padding-left:20px; }
 .total { font-size:1.4rem; font-weight:800; color:var(--acento); }
+
+.foto { width:100%; height:160px; object-fit:cover; border-radius:10px; display:block; }
