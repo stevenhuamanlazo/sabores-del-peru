@@ -22,7 +22,7 @@ export default function PlatosProbados() {
   const totalRenders = renders.current
 
   return (
-    <section>
+    <section className="panel">
       <h2>🍽️ Platos probados: {probados}</h2>
       <button onClick={() => setProbados(p => p + 1)}>Probar un plato</button>
       <button onClick={sumarSinRender}>Sumar a useRef (no re-renderiza)</button>

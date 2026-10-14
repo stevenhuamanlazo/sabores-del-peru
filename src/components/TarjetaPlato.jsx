@@ -3,10 +3,14 @@ import { memo } from 'react'
 function TarjetaPlato({ plato, esFavorito, onToggle }) {
   return (
     <li className="card">
-      <h3>{plato.emoji} {plato.nombre}</h3>
-      <p>{plato.region} · S/ {plato.precio}</p>
+      <div className="emoji">{plato.emoji}</div>
+      <h3>{plato.nombre}</h3>
+      <span className={`badge ${plato.region}`}>{plato.region}</span>
       <p><small>{plato.descripcion}</small></p>
-      <button onClick={() => onToggle(plato.id)}>{esFavorito ? '❤️ Quitar' : '🤍 Favorito'}</button>
+      <p className="precio">S/ {plato.precio}</p>
+      <button onClick={() => onToggle(plato.id)}>
+        {esFavorito ? '❤️ Quitar' : '🤍 Agregar a mi menú'}
+      </button>
     </li>
   )
 }
